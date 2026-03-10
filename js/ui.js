@@ -60,6 +60,19 @@ export class UIManager {
     this._energyRate .style.color = player.energyRate >= 0 ? '#88aa88' : '#cc4444';
 
     if (this._gameTime) this._gameTime.textContent = timeStr;
+
+    // Faction badge
+    const badge = document.getElementById('faction-badge');
+    if (badge) {
+      badge.textContent = player.faction;
+      badge.className   = 'faction-badge faction-' + player.faction.toLowerCase();
+    }
+
+    // Resource storage cap display
+    const metalEl  = document.getElementById('res-metal');
+    const energyEl = document.getElementById('res-energy');
+    if (metalEl)  metalEl .title = `${Math.floor(player.metal)} / ${player.metalCap}  metal`;
+    if (energyEl) energyEl.title = `${Math.floor(player.energy)} / ${player.energyCap}  energy`;
   }
 
   // ---- Selection Panel ----
@@ -236,12 +249,16 @@ export class UIManager {
 
   _showTooltip(e, def) {
     this._tooltip.style.display = 'block';
+    const tierStr = def.tier >= 2 ? `<div class="tt-tier">◆ TIER 2</div>` : '';
     this._tooltip.innerHTML = `
       <div class="tt-name">${def.name || def.id}</div>
-      ${def.metalCost  !== undefined ? `<div class="tt-cost">Metal: ${def.metalCost} | Energy: ${def.energyCost}</div>` : ''}
-      ${def.maxHp      !== undefined ? `<div>HP: ${def.maxHp}</div>` : ''}
-      ${def.damage     !== undefined ? `<div>DMG: ${def.damage} | Range: ${def.attackRange}</div>` : ''}
+      ${tierStr}
+      ${def.metalCost  !== undefined ? `<div class="tt-cost">M: ${def.metalCost} &nbsp;|&nbsp; E: ${def.energyCost}</div>` : ''}
+      ${def.maxHp      !== undefined ? `<div>HP: ${def.maxHp}${def.armor ? ' · Armor: '+def.armor : ''}</div>` : ''}
+      ${def.damage     !== undefined && def.damage > 0 ? `<div>DMG: ${def.damage} · Range: ${def.attackRange}</div>` : ''}
+      ${def.speed      !== undefined ? `<div>Speed: ${def.speed}</div>` : ''}
       ${def.buildTime  !== undefined ? `<div>Build: ${def.buildTime}s</div>` : ''}
+      ${def.desc       !== undefined ? `<div class="tt-desc">${def.desc}</div>` : ''}
     `;
     this._moveTooltip(e);
   }
@@ -271,7 +288,7 @@ export class UIManager {
     const player = this._placementPlayer;
     const commander = this._placementCommander;
 
-    if (!game.map.canPlace(tx, ty, def.tileW, def.tileH, def.requiresMetal ?? false)
+    if (!game.map.canPlace(tx, ty, def.tileW, def.tileH, def.requiresMetal ?? false, def.requiresGeo ?? false)
         || game.isTileOccupied(tx, ty, def.tileW, def.tileH)) {
       this.showNotification('Cannot place here!', player.id);
       return;

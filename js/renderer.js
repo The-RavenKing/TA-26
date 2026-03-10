@@ -19,6 +19,12 @@ export class Renderer {
     this.camX    = 0;
     this.camY    = 0;
 
+    // Screen shake
+    this._shakeX    = 0;
+    this._shakeY    = 0;
+    this._shakePower= 0;
+    this._shakeDur  = 0;
+
     this._resize();
   }
 
@@ -32,6 +38,21 @@ export class Renderer {
   }
 
   onResize() { this._resize(); }
+
+  // ---- Screen Shake ----
+  shake(power, duration = 0.3) {
+    this._shakePower = Math.max(this._shakePower, power);
+    this._shakeDur   = Math.max(this._shakeDur, duration);
+  }
+
+  _updateShake(dt) {
+    if (this._shakeDur <= 0) { this._shakeX = this._shakeY = 0; return; }
+    this._shakeDur  -= dt;
+    const p = this._shakePower * (this._shakeDur > 0 ? 1 : 0);
+    this._shakeX = (Math.random() - 0.5) * p * 2;
+    this._shakeY = (Math.random() - 0.5) * p * 2;
+    if (this._shakeDur <= 0) this._shakePower = 0;
+  }
 
   // ---- Camera ----
   clampCamera(map) {
@@ -50,9 +71,15 @@ export class Renderer {
   }
 
   // ---- Main render ----
-  render(game, ui) {
+  render(game, ui, dt = 0) {
+    this._updateShake(dt);
+
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.viewW, this.viewH);
+
+    // Apply screen shake
+    ctx.save();
+    ctx.translate(this._shakeX, this._shakeY);
 
     // Map
     game.map.draw(ctx, this.camX, this.camY, this.viewW, this.viewH);
@@ -106,6 +133,12 @@ export class Renderer {
 
     // Range indicator for selected buildings
     this._drawRangeIndicators(ctx, game);
+
+    // Geothermal steam overlay
+    this._drawGeoSteam(ctx, game);
+
+    // End screen shake transform
+    ctx.restore();
 
     this._renderMinimap(game, ui);
   }
@@ -165,6 +198,32 @@ export class Renderer {
     }
   }
 
+  _drawGeoSteam(ctx, game) {
+    const t = performance.now() / 1000;
+    for (const vent of game.map.geoVents) {
+      // Only animate vents not covered by a building
+      const hasBuilding = game.buildings.some(
+        b => !b.dead && b.built &&
+             vent.tx >= b.tx && vent.tx < b.tx + b.tileW &&
+             vent.ty >= b.ty && vent.ty < b.ty + b.tileH
+      );
+      if (hasBuilding) continue;
+
+      const sx = vent.px - this.camX;
+      const sy = vent.py - this.camY;
+      for (let i = 0; i < 3; i++) {
+        const offset = (t * 0.7 + i * 0.4) % 1;
+        const a  = 0.3 * (1 - offset);
+        const r  = 5 + offset * 18;
+        const ox = Math.sin(t * 2 + i * 2.1) * 6 * offset;
+        ctx.beginPath();
+        ctx.arc(sx + ox, sy - offset * 30, r, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(200,200,220,${a})`;
+        ctx.fill();
+      }
+    }
+  }
+
   _drawGhostBuilding(ctx, ui, game) {
     const def = ui.placingBuildingDef;
     if (!def) return;
@@ -175,7 +234,7 @@ export class Renderer {
     const pw = def.tileW * TILE_SIZE;
     const ph = def.tileH * TILE_SIZE;
 
-    const canPlace = game.map.canPlace(tx, ty, def.tileW, def.tileH, def.requiresMetal ?? false)
+    const canPlace = game.map.canPlace(tx, ty, def.tileW, def.tileH, def.requiresMetal ?? false, def.requiresGeo ?? false)
                   && !game.isTileOccupied(tx, ty, def.tileW, def.tileH);
 
     ctx.globalAlpha = 0.6;

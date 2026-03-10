@@ -37,7 +37,8 @@ export class Game {
     this.winner   = null;
 
     // Notifications queue (relayed to UI)
-    this._notifQueue = [];
+    this._notifQueue    = [];
+    this._newExplosions = [];  // populated each frame for screen shake
 
     this._initGame();
   }
@@ -94,19 +95,31 @@ export class Game {
   getBuildingDef(id) { return BUILDING_DEF[id]; }
   getPlayer(id)      { return this.players[id];  }
 
-  nearestEnemy(wx, wy, playerId, range) {
+  nearestEnemy(wx, wy, playerId, range, preferAir = false) {
     let best = null, bestD = range * range;
 
     for (const u of this.units) {
       if (u.playerId === playerId || u.dead) continue;
+      if (preferAir && !u.isAir) continue;  // anti-air targets air first
       const d = dist2(wx, wy, u.x, u.y);
       if (d < bestD) { bestD = d; best = u; }
     }
 
-    for (const b of this.buildings) {
-      if (b.playerId === playerId || b.dead || !b.built) continue;
-      const d = dist2(wx, wy, b.x, b.y);
-      if (d < bestD) { bestD = d; best = b; }
+    // If anti-air found nothing, fall back to any enemy
+    if (preferAir && !best) {
+      for (const u of this.units) {
+        if (u.playerId === playerId || u.dead) continue;
+        const d = dist2(wx, wy, u.x, u.y);
+        if (d < bestD) { bestD = d; best = u; }
+      }
+    }
+
+    if (!preferAir) {
+      for (const b of this.buildings) {
+        if (b.playerId === playerId || b.dead || !b.built) continue;
+        const d = dist2(wx, wy, b.x, b.y);
+        if (d < bestD) { bestD = d; best = b; }
+      }
     }
 
     return best;
@@ -231,7 +244,9 @@ export class Game {
 
     // Spawn explosion
     const radius = proj.splash > 0 ? proj.splash * 0.5 : 20;
-    this.explosions.push(new Explosion(proj.tx, proj.ty, radius));
+    const ex = new Explosion(proj.tx, proj.ty, radius);
+    this.explosions.push(ex);
+    this._newExplosions.push(ex);
   }
 
   _cleanup() {
@@ -239,8 +254,9 @@ export class Game {
     for (let i = this.units.length - 1; i >= 0; i--) {
       const u = this.units[i];
       if (u.dead) {
-        // Deathsplosion
-        this.explosions.push(new Explosion(u.x, u.y, u.radius * 2.5, '#ff6622'));
+        const ex = new Explosion(u.x, u.y, u.radius * 2.5, '#ff6622');
+        this.explosions.push(ex);
+        this._newExplosions.push(ex);
         this.units.splice(i, 1);
       }
     }

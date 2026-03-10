@@ -51,6 +51,7 @@
         <div class="res-bar-bg"><div class="res-bar-fill energy-fill" id="energy-fill"></div></div>
       </div>
       <div class="game-time" id="game-time">00:00</div>
+      <span id="faction-badge" class="faction-arm">ARM</span>
       <button class="menu-btn" onclick="returnToMenu()">MENU</button>
     </div>
 
@@ -83,6 +84,16 @@
 
     <!-- Notification -->
     <div id="notification" class="hidden"></div>
+
+    <!-- Keyboard Shortcuts Hint -->
+    <div id="shortcut-hint">
+      <span class="sk-key">H</span> Commander &nbsp;
+      <span class="sk-key">Ctrl+A</span> All &nbsp;
+      <span class="sk-key">Ctrl+1-9</span> Assign &nbsp;
+      <span class="sk-key">1-9</span> Select Group &nbsp;
+      <span class="sk-key">S</span> Stop &nbsp;
+      <span class="sk-key">Esc</span> Cancel
+    </div>
 
     <!-- Game Over Screen -->
     <div id="gameover-screen" class="hidden">

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Total Annihilation: Reborn</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Main Menu -->
+  <div id="menu-screen">
+    <div class="menu-bg"></div>
+    <div class="menu-content">
+      <h1 class="title">TOTAL ANNIHILATION</h1>
+      <h2 class="subtitle">R E B O R N</h2>
+      <p class="menu-desc">A real-time strategy epic. Choose your side, build your war machine, and annihilate the enemy.</p>
+      <div class="faction-select">
+        <div class="faction-card" id="card-arm">
+          <div class="faction-icon arm-icon"></div>
+          <h3>ARM</h3>
+          <p>The Arm values individual life and uses high-tech robotics and energy weapons. Favors speed and precision.</p>
+          <button class="btn-play" onclick="startGame('ARM')">PLAY AS ARM</button>
+        </div>
+        <div class="vs-label">VS</div>
+        <div class="faction-card" id="card-core">
+          <div class="faction-icon core-icon"></div>
+          <h3>CORE</h3>
+          <p>The Core transfers consciousness into machines. Favors raw firepower and heavy armor over agility.</p>
+          <button class="btn-play" onclick="startGame('CORE')">PLAY AS CORE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="hidden">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top Resource Bar -->
+    <div id="resource-bar">
+      <div class="resource" id="res-metal">
+        <span class="res-icon metal-icon">M</span>
+        <span class="res-value" id="metal-value">0</span>
+        <span class="res-rate" id="metal-rate">+0.0/s</span>
+        <div class="res-bar-bg"><div class="res-bar-fill metal-fill" id="metal-fill"></div></div>
+      </div>
+      <div class="resource" id="res-energy">
+        <span class="res-icon energy-icon">E</span>
+        <span class="res-value" id="energy-value">0</span>
+        <span class="res-rate" id="energy-rate">+0.0/s</span>
+        <div class="res-bar-bg"><div class="res-bar-fill energy-fill" id="energy-fill"></div></div>
+      </div>
+      <div class="game-time" id="game-time">00:00</div>
+      <button class="menu-btn" onclick="returnToMenu()">MENU</button>
+    </div>
+
+    <!-- Bottom Panel -->
+    <div id="bottom-panel">
+      <!-- Unit Info / Build Menu -->
+      <div id="selection-info">
+        <div id="unit-portrait">
+          <canvas id="portrait-canvas" width="80" height="80"></canvas>
+        </div>
+        <div id="unit-stats">
+          <div id="unit-name">No Selection</div>
+          <div id="unit-hp-bar-bg"><div id="unit-hp-bar"></div></div>
+          <div id="unit-hp-text"></div>
+          <div id="unit-status"></div>
+        </div>
+      </div>
+
+      <!-- Build / Action Buttons -->
+      <div id="action-panel">
+        <div id="action-buttons"></div>
+      </div>
+
+      <!-- Minimap -->
+      <div id="minimap-container">
+        <canvas id="minimap-canvas" width="200" height="150"></canvas>
+        <div id="minimap-label">MINIMAP</div>
+      </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="hidden"></div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="hidden">
+      <div id="gameover-content">
+        <h2 id="gameover-title"></h2>
+        <p id="gameover-desc"></p>
+        <button onclick="returnToMenu()">RETURN TO MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
